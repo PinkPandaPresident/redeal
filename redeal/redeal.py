@@ -325,6 +325,26 @@ class Deal(tuple):
         assert all(hand in Seat for hand in hands)
         cls._print_only = hands
 
+    @classmethod
+    def all_possible_contracts(cls, doubling=False):
+        all_hands = ('N', 'S', 'E', 'W')
+        all_suits = ('S', 'H', 'D', 'C', 'N')
+        all_doubles = ('', 'X', 'XX')
+        all_numbers = (str(i) for i in range(1, 8))
+
+        all_contracts = []
+
+        if doubling:
+            all_contracts = list(product(all_numbers, all_suits, all_doubles, all_hands))
+        else:
+            all_contracts = list(product(all_numbers, all_suits, all_hands))
+
+        all_contracts = [''.join(contract) for contract in all_contracts]
+
+        return all_contracts
+
+
+
     north = property(itemgetter(Seat.N), "north")
     east = property(itemgetter(Seat.E), "east")
     south = property(itemgetter(Seat.S), "south")
@@ -352,6 +372,18 @@ class Deal(tuple):
         listed; i.e., equivalent leads are only listed once.
         """
         return dds.solve_all(self, strain, leader)
+
+    def dd_all_results(self, doubling=False, vul=False):
+        """
+        Compute declarer's number of double-dummy tricks in all possible contracts.
+        """
+        all_results = []
+        for contract in self.all_possible_contracts(doubling=doubling):
+            tricks_made = self.dd_tricks(contract)
+            got_score = Contract.from_str(contract[:-1], vul=vul).score(tricks_made)
+            all_results.append([contract, tricks_made, got_score])
+        return all_results
+
 
 
 class Hand(tuple):
