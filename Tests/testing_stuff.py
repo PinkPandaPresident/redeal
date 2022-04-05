@@ -1,10 +1,5 @@
 from redeal import *
 
-
-
-
-
-
 def making_best_contract_table():
     all_hands = ('N', 'S', 'E', 'W')
     all_suits = ('S', 'H', 'D', 'C', 'N')
@@ -19,9 +14,6 @@ def making_best_contract_table():
                     all_contracts.append(str(str(number) + suit + status + hand))
     #print(all_contracts)
     return all_contracts
-making_best_contract_table()
-
-# print(Deal.all_possible_contracts())
 
 
 def all_contracts_results(deal, double=True):
