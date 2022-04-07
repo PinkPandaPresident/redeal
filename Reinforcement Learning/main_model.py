@@ -8,9 +8,9 @@ import torch as T
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
-
+from utils import plotLearning
 from creating_data import Game as Game
+
 
 class DQN(nn.Module):
     def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions):
@@ -36,6 +36,7 @@ class DQN(nn.Module):
         actions = self.fc3(x)
 
         return actions
+
 
 class Agent():
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,
@@ -116,8 +117,10 @@ if __name__ == '__main__':
     env = gym.make('LunarLander-v2')
     agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
                   input_dims=8, lr=0.003)
+
+    filename = 'Recording-Progress.png'
     scores, eps_history = [], []
-    n_games = 10000
+    n_games = 100
 
     for i in range(n_games):
         score = 0
@@ -130,13 +133,18 @@ if __name__ == '__main__':
             agent.store_transition(observation, action, reward, observation_, done)
 
             observation = observation_
-        agent.learn()
+            agent.learn()
         scores.append(score)
         eps_history.append(agent.epsilon)
 
         avg_score = np.mean(scores[-100:])
         print(f'episode {i}, score {score}, average score {avg_score}, epsilon {agent.epsilon}')
 
+        eps_history.append(agent.epsilon)
+
+
+    x = [i+1 for i in range(n_games)]
+    plotLearning(x, scores, eps_history, filename)
 
 
 
