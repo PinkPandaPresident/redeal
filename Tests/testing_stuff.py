@@ -1,5 +1,7 @@
+from Reinforcement_Learning.main_model import DQN
 from redeal import *
-
+from Reinforcement_Learning import main_model, creating_data, utils
+from Reinforcement_Learning.main_model import DQN
 def making_best_contract_table():
     all_hands = ('N', 'S', 'E', 'W')
     all_suits = ('S', 'H', 'D', 'C', 'N')
@@ -80,7 +82,7 @@ def test_one(double=True):
     """
     Checks All Contract Results Method in Class Deal, for doubles and then without
     """
-    print(f"Test {1 if double else 2} Commencing...")
+    print(f"Test {'1a' if double else '1b'} Commencing...")
     dealer = Deal.prepare()
     deal1 = dealer()
 
@@ -101,11 +103,54 @@ def test_one(double=True):
 
     two = set(tuple(x) for x in big_table)
 
+
     if one==two:
-        print(f"Test {1 if double else 2} Passed")
+        print(f"Test {'1a' if double else '1b'} Passed")
     else:
-        print(f"Test {1 if double else 2} Failed")
+        print(f"Test {'1a' if double else '1b'} Failed")
+
+def test_two(PATH):
+    """
+    Just verifying that a bid is picked. Expect to fail for now.
+    """
+
+    try:
+
+
+        temp_agent = main_model.Agent(gamma=0.99, epsilon=0.0, batch_size=64, n_actions=4, eps_end=0.01,
+                      input_dims=8, lr=0.003, predone_model_pth=PATH)
+        temp_game = creating_data.Game()
+
+        starting_state = temp_game.reset()
+        chosen_action = temp_agent.choose_action(starting_state)
+
+        temp_agent.pretty_print_action(chosen_action)
+        print("Test 2 Passed")
+
+
+    except:
+        print("Test 2 Failed")
+
+
+def test_three():
+
+    temp_game = creating_data.Game()
+    x = temp_game.reset()
+    if len(x) == 318 + 52 + 2:
+        print("Test 3 Passed")
+    else:
+        print("Test 3 Failed")
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
-    test_one(double=True)
-    test_one(double=False)
+    # test_one(double=True)
+    # test_one(double=False)
+    # test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
+    test_three()

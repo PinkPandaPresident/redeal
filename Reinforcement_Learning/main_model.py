@@ -8,8 +8,8 @@ import torch as T
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from utils import plotLearning
-from creating_data import Game as Game
+from Reinforcement_Learning.utils import plotLearning
+from Reinforcement_Learning.creating_data import Game as Game
 
 
 class DQN(nn.Module):
@@ -40,7 +40,7 @@ class DQN(nn.Module):
 
 class Agent():
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,
-                 max_mem_size=100000, eps_end=0.01, eps_dec=5e-4):
+                 max_mem_size=100000, eps_end=0.01, eps_dec=5e-4, predone_model_pth=None):
         self.gamma = gamma
         self.epsilon = epsilon
         self.eps_min = eps_end
@@ -61,6 +61,11 @@ class Agent():
         self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
         self.terminal_memory = np.zeros(self.mem_size, dtype=bool)
 
+        self.predone_model_pth = predone_model_pth
+        if self.predone_model_pth is not None:
+            self.Q_eval.load_state_dict(T.load(self.predone_model_pth))
+            self.Q_eval.eval()
+
     def store_transition(self, state, action, reward, state_, done):
         index = self.mem_cntr % self.mem_size
         self.state_memory[index] = state
@@ -72,6 +77,10 @@ class Agent():
         self.mem_cntr += 1
 
     def choose_action(self, observation):
+
+
+
+
         if np.random.random() > self.epsilon:
             state = T.tensor([observation]).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
@@ -110,6 +119,13 @@ class Agent():
 
         self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
+    def save_model(self):
+        T.save(self.Q_eval.state_dict(), "current_model.pth")
+
+    def pretty_print_action(self, action):
+        print(action)
+
+
 if __name__ == '__main__':
     env = gym.make('LunarLander-v2')
     agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
@@ -136,6 +152,8 @@ if __name__ == '__main__':
 
         avg_score = np.mean(scores[-100:])
         print(f'episode {i}, score {score}, average score {avg_score}, epsilon {agent.epsilon}')
+
+    agent.save_model()
 
 
 
