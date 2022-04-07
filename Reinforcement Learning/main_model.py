@@ -110,9 +110,6 @@ class Agent():
 
         self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
-
-print(gym.envs.registry)
-
 if __name__ == '__main__':
     env = gym.make('LunarLander-v2')
     agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
@@ -120,7 +117,7 @@ if __name__ == '__main__':
 
     filename = 'Recording-Progress.png'
     scores, eps_history = [], []
-    n_games = 100
+    n_games = 10
 
     for i in range(n_games):
         score = 0
@@ -140,7 +137,7 @@ if __name__ == '__main__':
         avg_score = np.mean(scores[-100:])
         print(f'episode {i}, score {score}, average score {avg_score}, epsilon {agent.epsilon}')
 
-        eps_history.append(agent.epsilon)
+
 
 
     x = [i+1 for i in range(n_games)]
