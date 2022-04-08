@@ -127,9 +127,9 @@ class Agent():
 
 
 if __name__ == '__main__':
-    env = gym.make('LunarLander-v2')
-    agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
-                  input_dims=8, lr=0.003)
+    env = Game()
+    agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=38, eps_end=0.01,
+                  input_dims=373, lr=0.003)
 
     filename = 'Recording-Progress.png'
     scores, eps_history = [], []
@@ -139,6 +139,9 @@ if __name__ == '__main__':
         score = 0
         done = False
         observation = env.reset()
+
+        x = 0
+
         while not done:
             action = agent.choose_action(observation)
             observation_, reward, done, info = env.step(action)
@@ -147,6 +150,9 @@ if __name__ == '__main__':
 
             observation = observation_
             agent.learn()
+            x += 1
+            print(x)
+
         scores.append(score)
         eps_history.append(agent.epsilon)
 

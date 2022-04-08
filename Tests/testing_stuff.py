@@ -2,6 +2,7 @@ from Reinforcement_Learning.main_model import DQN
 from redeal import *
 from Reinforcement_Learning import main_model, creating_data, utils
 from Reinforcement_Learning.main_model import DQN
+import numpy
 def making_best_contract_table():
     all_hands = ('N', 'S', 'E', 'W')
     all_suits = ('S', 'H', 'D', 'C', 'N')
@@ -133,24 +134,76 @@ def test_two(PATH):
 
 
 def test_three():
+    """
+    Creates instance of Game class to check if it forms correctly.
+    """
 
     temp_game = creating_data.Game()
     x = temp_game.reset()
-    if len(x) == 318 + 52 + 2:
+    if len(x) == 319 + 52 + 2:
         print("Test 3 Passed")
     else:
         print("Test 3 Failed")
 
 
+def test_four():
+    """
+    Checks that four passes ends Game properly.
+    """
+
+    temp_game = creating_data.Game()
+    temp_game.reset()
+
+    seq = (35, 35, 35, 35)
+
+    x = (numpy.zeros(373), None, None, (None, None, None))
+
+    i = 0
+    while x[2] is not True:
+        x = temp_game.step(seq[i])
+        # temp_game.print_bidding_history()
+        i += 1
+
+    if temp_game.bidding_history[-1] == 1 and temp_game.bidding_over:
+        print("Test 4 Passed")
+    else:
+        print("Test 4 Failed")
 
 
+def test_five():
+    """
+    Checks that four passes ends Game properly.
+    """
 
+    temp_game = creating_data.Game()
+    temp_game.reset()
 
+    seq = (35, 35, 35, 35)
 
+    x = (numpy.zeros(373), None, None, (None, None, None))
+
+    i = 0
+    while x[2] is not True:
+
+        while True:
+            pot_inp = int(input("ENTER"))
+            if pot_inp in creating_data.Game.legal_bids(x[0]):
+                break
+            print("ILLEGAL")
+
+        x = temp_game.step(pot_inp)
+        temp_game.print_bidding_history()
+        i += 1
+
+    if temp_game.bidding_history[-1] == 1 and temp_game.bidding_over:
+        print("Test 4 Passed")
+    else:
+        print("Test 4 Failed")
 
 
 if __name__ == '__main__':
-    # test_one(double=True)
-    # test_one(double=False)
-    # test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
+    test_one(double=True)
+    test_one(double=False)
+    test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
     test_three()
+    test_four()
