@@ -78,15 +78,30 @@ class Agent():
 
     def choose_action(self, observation):
 
-
-
+        legal_actions = Game.legal_bids(observation)
 
         if np.random.random() > self.epsilon:
             state = T.tensor([observation]).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
-            action = T.argmax(actions).item()
+            potential_actions = T.tensor([i if n in legal_actions else -math.inf for n, i in enumerate(list(actions[0]))])
+
+
+
+
+            #
+            # new_actions = []
+            # for n, i in enumerate(actions[0]):
+            #     if n in legal_actions:
+            #         new_actions.append(i)
+            # new_actions = T.tensor(new_actions)
+
+
+
+
+
+            action = T.argmax(potential_actions).item()
         else:
-            action = np.random.choice(self.action_space)
+            action = np.random.choice(list(legal_actions))
         return action
 
     def learn(self):
@@ -133,7 +148,7 @@ if __name__ == '__main__':
 
     filename = 'Recording-Progress.png'
     scores, eps_history = [], []
-    n_games = 10
+    n_games = 1000
 
     for i in range(n_games):
         score = 0
@@ -151,7 +166,8 @@ if __name__ == '__main__':
             observation = observation_
             agent.learn()
             x += 1
-            print(x)
+        print(f'{x} bids')
+        print(Game.acc_print_bidding_history(observation[-319:]))
 
         scores.append(score)
         eps_history.append(agent.epsilon)

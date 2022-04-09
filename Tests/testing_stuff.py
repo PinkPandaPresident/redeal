@@ -187,7 +187,8 @@ def test_five():
 
         while True:
             pot_inp = int(input("ENTER"))
-            if pot_inp in creating_data.Game.legal_bids(x[0]):
+            pot_legal_bids = creating_data.Game.legal_bids(x[0])
+            if pot_inp in pot_legal_bids:
                 break
             print("ILLEGAL")
 
@@ -202,8 +203,9 @@ def test_five():
 
 
 if __name__ == '__main__':
-    test_one(double=True)
-    test_one(double=False)
-    test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
-    test_three()
-    test_four()
+    # test_one(double=True)
+    # test_one(double=False)
+    # test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
+    # test_three()
+    # test_four()
+    test_five()

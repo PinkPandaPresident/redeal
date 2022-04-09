@@ -74,37 +74,84 @@ class Game:
     def create_bidding_history(self):
         return numpy.zeros(318+1)
 
-    def print_bidding_history(self):
-        print(self.bidding_history[:3])
+    def print_bidding_history(self, opt_bidding_history=None):
+
+        if opt_bidding_history is None:
+            opt_bidding_history = self.bidding_history
+
+        print(opt_bidding_history[:3])
         for i in range(35):
-            if self.bidding_history[3+(i*9)] == 1:
+            if opt_bidding_history[3+(i*9)] == 1:
 
-                print(f"{1+(i//5)}{'C' if i%5==0 else 'D' if i%5==1 else 'H' if i%5==2 else 'S' if i%5==3 else 'NT'}: {self.bidding_history[3+(i*9):12+(i*9)]}")
+                print(f"{1+(i//5)}{'C' if i%5==0 else 'D' if i%5==1 else 'H' if i%5==2 else 'S' if i%5==3 else 'NT'}: {opt_bidding_history[3+(i*9):12+(i*9)]}")
 
-        print(self.bidding_history)
+        #print(self.bidding_history)
+
+    @classmethod
+    def acc_print_bidding_history(cls, bidding_rec):
+        to_print = []
+        for i in bidding_rec[:3]:
+            if i == 1:
+                to_print.append("Pass")
+
+        for i in range(35):
+            if bidding_rec[3+(i*9)] == 1:
+                to_print.append(f"{1+(i//5)}{'C' if i%5==0 else 'D' if i%5==1 else 'H' if i%5==2 else 'S' if i%5==3 else 'NT'}")
+                if bidding_rec[3 + (i * 9) + 1] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 2] == 1:
+                    to_print.append("Pass")
+
+                if bidding_rec[3 + (i * 9) + 3] == 1:
+                    to_print.append("Double")
+
+                if bidding_rec[3 + (i * 9) + 4] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 5] == 1:
+                    to_print.append("Pass")
+
+                if bidding_rec[3 + (i * 9) + 6] == 1:
+                    to_print.append("Redouble")
+
+                if bidding_rec[3 + (i * 9) + 7] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 8] == 1:
+                    to_print.append("Pass")
+
+        return to_print
+
+
 
     @classmethod
     def legal_bids(cls, observation):
+        """
+        Returns set of legal bids, with same convention described in self.step, i.e. 35 = pass, 0 = 1c, etc.
+        """
         temp_bidding_history = observation[-319:]
+        if len(numpy.nonzero(temp_bidding_history)[0]) == 0:
+            return numpy.arange(36)
         last_bid = numpy.nonzero(temp_bidding_history)[0][-1]
+
 
         if last_bid < 3:
             # Can do anything except double or redouble since nothing has been bid so far
             return numpy.arange(36)
 
-        last_proper_bid = (last_bid-3) % 9
+        last_proper_bid = (last_bid-3) // 9
         pot_range = numpy.arange(last_proper_bid+1, 36, 1)
         if temp_bidding_history[3+(last_proper_bid*9)+6] == 1:
             return pot_range
         if temp_bidding_history[3+(last_proper_bid*9)+3] == 1:
             rel_seq = temp_bidding_history[3+(last_proper_bid*9)+4:3+(last_proper_bid*9)+6]
-            if rel_seq == [0,0] or rel_seq == [1,1]:
-                numpy.append(pot_range, 37)
+            if numpy.array_equal(rel_seq, numpy.array((0, 0))) or numpy.array_equal(rel_seq, numpy.array((1, 1))):
+                pot_range = numpy.append(pot_range, 37)
             return pot_range
         rel_seq = temp_bidding_history[3+(last_proper_bid*9)+1:3+(last_proper_bid*9)+3]
-        if rel_seq == [0, 0] or rel_seq == [1, 1]:
-            numpy.append(pot_range, 36)
-        return pot_range
+        if numpy.array_equal(rel_seq, numpy.array((0, 0))) or numpy.array_equal(rel_seq, numpy.array((1, 1))):
+            pot_range = numpy.append(pot_range, 36)
+
+
+        return set(pot_range)
 
 
     def calculate_reward(self):
@@ -193,7 +240,6 @@ class Game:
                     self.last_bid_position = 2
 
                 else:
-
 
                     self.bidding_history[318] = 1
                     self.bidding_over = True
