@@ -4,6 +4,7 @@ import numpy
 class Game:
 
     def __init__(self):
+        self.all_cards = None
         self.giving_info = None
         self.bidding_history = None
         self.vuls = None
@@ -18,6 +19,9 @@ class Game:
         self.reward = 0
         self.end_contract = None
         self.current_player = None
+        self.last_proper_bidder = None
+
+        self.summary = dict()
 
     def create_cards(self, deal):
         """
@@ -118,7 +122,55 @@ class Game:
                 if bidding_rec[3 + (i * 9) + 8] == 1:
                     to_print.append("Pass")
 
+        if bidding_rec[-1] == 1:
+            to_print.append("Pass_End")
+
         return to_print
+
+    @classmethod
+    def pretty_print_bidding(cls, bidding_rec):
+        to_print = []
+        for i in bidding_rec[:3]:
+            if i == 1:
+                to_print.append("Pass")
+
+        for i in range(35):
+            if bidding_rec[3+(i*9)] == 1:
+                to_print.append(f"{1+(i//5)}{'C' if i%5==0 else 'D' if i%5==1 else 'H' if i%5==2 else 'S' if i%5==3 else 'NT'}")
+                if bidding_rec[3 + (i * 9) + 1] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 2] == 1:
+                    to_print.append("Pass")
+
+                if bidding_rec[3 + (i * 9) + 3] == 1:
+                    to_print.append("Dbl")
+
+                if bidding_rec[3 + (i * 9) + 4] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 5] == 1:
+                    to_print.append("Pass")
+
+                if bidding_rec[3 + (i * 9) + 6] == 1:
+                    to_print.append("Redbl")
+
+                if bidding_rec[3 + (i * 9) + 7] == 1:
+                    to_print.append("Pass")
+                if bidding_rec[3 + (i * 9) + 8] == 1:
+                    to_print.append("Pass")
+
+        if bidding_rec[-1] == 1:
+            to_print.append("Pass")
+
+        ac_to_print = "North East South West \n"
+
+        for n, i in enumerate(to_print):
+            ac_to_print += (i + (' ' * (5 - len(i))))
+
+
+            if n % 4 == 3:
+                ac_to_print += "\n"
+
+        return ac_to_print
 
 
 
@@ -153,12 +205,21 @@ class Game:
 
         return set(pot_range)
 
+    @classmethod
+    def same_team(cls, a, b):
+        return (a % 2) == (b % 2)
 
     def calculate_reward(self):
+        converter = {"N": 0, "E": 1, "S": 2, "W": 3}
+
+
         if self.end_contract is None:
             return 0
 
-        return -self.deal.dd_score(self.end_contract)
+        if Game.same_team(converter[self.end_contract[-1]], self.current_player):
+            return self.deal.dd_score(self.end_contract)
+        else:
+            return -self.deal.dd_score(self.end_contract)
 
     def reset(self):
         """
@@ -189,6 +250,9 @@ class Game:
         self.current_player = 0
         self.cards = self.create_cards(self.deal)
         self.our_cards = self.cards[:52]
+        self.all_cards = [self.cards,self.our_cards[52:104],self.our_cards[104:156],self.our_cards[156:208]]
+
+
         self.vuls = numpy.random.randint(1, size=(2)).astype(float)
 
         self.bidding_history = self.create_bidding_history()
@@ -215,8 +279,8 @@ class Game:
         309...317 = 7nt bid
         318 = final pass
 
-        Described in more detail in https://arxiv.org/pdf/1903.00900.pdf. Added final pass, because unclear how they
-        dealt with it.
+        Described in more detail in https://arxiv.org/pdf/1903.00900.pdf. Added bit for final pass, because was
+        unclear how they dealt with it.
         """
         # assumes action is legal
 
@@ -227,6 +291,7 @@ class Game:
             self.number_of_passes = 0
             self.bidding_history[3 + (action*9)] = 1
             self.last_bid_position = 3 + (action*9)
+            self.last_proper_bidder = self.current_player
         elif action == 35:
             self.number_of_passes += 1
 
@@ -256,7 +321,7 @@ class Game:
                         i = self.last_proper_bid
 
                         contract = f"{1+(i//5)}{'C' if i%5==0 else 'D' if i%5==1 else 'H' if i%5==2 else 'S' if i%5==3 else 'NT'}"
-                        self.end_contract = f"{contract}{'X' if doubled else 'XX' if redoubled else ''}{num_to_direc[self.current_player]}"
+                        self.end_contract = f"{contract}{'XX' if redoubled else 'X' if doubled else ''}{num_to_direc[self.last_proper_bidder]}"
 
             elif self.number_of_passes == 4:
                 self.bidding_history[318] = 1
@@ -301,11 +366,25 @@ class Game:
 
         self.current_player = (self.current_player + 1 ) % 4
 
+
+
+
         debug_info = {
-            "First_3": self.bidding_history[:3]
+            "First_3": self.bidding_history[:3],
+            "Next_Player": self.all_cards[self.current_player],
+            "Pretty_Cards": self.deal._long_str(),
+            "Reward": self.reward,
+            "End_Contract": self.end_contract,
+            "dd_score": self.deal.dd_score(self.end_contract) if self.end_contract is not None else ""
+
+
 
 
         }
 
+        # print(self.end_contract)
+
         return self.giving_info.astype(numpy.float32), self.reward, self.bidding_over, debug_info
+
+
 

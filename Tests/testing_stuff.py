@@ -197,9 +197,46 @@ def test_five():
         i += 1
 
     if temp_game.bidding_history[-1] == 1 and temp_game.bidding_over:
-        print("Test 4 Passed")
+        print("Test 5 Passed")
     else:
-        print("Test 4 Failed")
+        print("Test 5 Failed")
+
+def test_six():
+    """
+    Checks Game Class
+    """
+
+    temp_game = creating_data.Game()
+    temp_game.reset()
+    print(temp_game.deal._long_str())
+
+    seq = (35, 35, 35, 35)
+
+    x = (numpy.zeros(373), None, None, (None, None, None))
+
+    i = 0
+    while x[2] is not True:
+
+        while True:
+            pot_inp = int(input("ENTER"))
+            pot_legal_bids = creating_data.Game.legal_bids(x[0])
+            if pot_inp in pot_legal_bids:
+                break
+            print("ILLEGAL")
+
+        x = temp_game.step(pot_inp)
+        temp_game.print_bidding_history()
+        i += 1
+
+    print(temp_game.end_contract)
+    print(temp_game.calculate_reward())
+    print(creating_data.Game.pretty_print_bidding(temp_game.bidding_history))
+
+
+    if temp_game.bidding_history[-1] == 1 and temp_game.bidding_over:
+        print("Test 5 Passed")
+    else:
+        print("Test 5 Failed")
 
 
 if __name__ == '__main__':
@@ -208,4 +245,5 @@ if __name__ == '__main__':
     # test_two("C:/Users/adidh/PycharmProjects/redeal/Reinforcement_Learning/current_model.pth")
     # test_three()
     # test_four()
-    test_five()
+    # test_five()
+    test_six()

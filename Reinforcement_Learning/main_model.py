@@ -1,3 +1,5 @@
+# https://github.com/philtabor/Youtube-Code-Repository/blob/master/ReinforcementLearning/DeepQLearning/simple_dqn_torch_2020.py
+
 from collections import deque
 import random
 import math
@@ -13,16 +15,18 @@ from Reinforcement_Learning.creating_data import Game as Game
 
 
 class DQN(nn.Module):
-    def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions):
+    def __init__(self, lr, input_dims, fc1_dims, fc2_dims, fc3_dims, n_actions):
         super(DQN, self).__init__()
         self.input_dims = input_dims
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims
+        self.fc3_dims = fc3_dims
         self.n_actions = n_actions
 
         self.fc1 = nn.Linear(self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
-        self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
+        self.fc3 = nn.Linear(self.fc2_dims, self.fc3_dims)
+        self.fc4 = nn.Linear(self.fc3_dims, self.n_actions)
 
         self.optimizer = optim.Adam(self.parameters(), lr=lr)
         self.loss = nn.MSELoss()
@@ -33,7 +37,8 @@ class DQN(nn.Module):
     def forward(self,state):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        actions = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        actions = self.fc4(x)
 
         return actions
 
@@ -51,8 +56,8 @@ class Agent():
         self.batch_size = batch_size
         self.mem_cntr = 0
 
-        self.Q_eval = DQN(self.lr, n_actions=n_actions, input_dims=input_dims, fc1_dims=256,
-                          fc2_dims=256)
+        self.Q_eval = DQN(self.lr, n_actions=n_actions, input_dims=input_dims, fc1_dims=512,
+                          fc2_dims=1024, fc3_dims=512)
 
         self.state_memory = np.zeros((self.mem_size, input_dims), dtype=np.float32)
         self.new_state_memory = np.zeros((self.mem_size, input_dims), dtype=np.float32)
@@ -166,7 +171,7 @@ if __name__ == '__main__':
             observation = observation_
             agent.learn()
             x += 1
-        print(f'{x} bids')
+        # print(f'{x} bids')
         print(Game.acc_print_bidding_history(observation[-319:]))
 
         scores.append(score)
@@ -174,6 +179,13 @@ if __name__ == '__main__':
 
         avg_score = np.mean(scores[-100:])
         print(f'episode {i}, score {score}, average score {avg_score}, epsilon {agent.epsilon}')
+
+        four_scores = ''.join([str(env.deal.dd_score("7NXXN")), str(env.deal.dd_score("7NXXE")), str(env.deal.dd_score("7NXXS")), str(env.deal.dd_score("7NXXW"))])
+        print(four_scores)
+
+
+
+
 
     agent.save_model()
 
