@@ -210,6 +210,8 @@ class Game:
         return (a % 2) == (b % 2)
 
     def calculate_reward(self):
+
+
         converter = {"N": 0, "E": 1, "S": 2, "W": 3}
 
 

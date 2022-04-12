@@ -18,7 +18,7 @@ def fit(
         batch_size: int = 128,
         gamma: float = 0.99,
         eps_start: float = 1.0,
-        eps_end: float = 0.1,
+        eps_end: float = 0.01,
         eps_steps: int = 60_000,
 ) -> bytes:
     device = T.device("cuda" if T.cuda.is_available() else "cpu")
@@ -79,17 +79,32 @@ def fit(
                 next_state = T.tensor([next_state], dtype=T.float).to(device)
             #print(Game.acc_print_bidding_history(next_state[0][-319:]))
 
-            print(f'step {step}, episode {episode}, score {reward}, end contract {_["End_Contract"]}, dd_play {_["dd_score"]} '
-                  f'average score {avg_score}, epsilon {eps}')
-            print(env.deal._short_str())
-            print(Game.pretty_print_bidding(next_state[0][-319:]))
-            print("\n\n\n")
+            # print(f'step {step}, episode {episode}, score {reward}, end contract {_["End_Contract"]}, dd_play {_["dd_score"]} '
+            #       f'average score {avg_score}, epsilon {eps}')
+            # print(env.deal._short_str())
+            # print(Game.pretty_print_bidding(next_state[0][-319:]))
+            # print("\n\n\n")
 
 
 
 
             next_state = None
             episode += 1
+
+
+        avg_score = np.mean(scores[-100:])
+
+        print(f'step {step}, episode {episode}, score {reward}, end contract {_["End_Contract"]}, dd_play {_["dd_score"]} '
+              f'average score {avg_score}, epsilon {eps}')
+        print(env.deal._short_str())
+        print(Game.pretty_print_bidding(state[0][-319:]))
+
+        if next_state is not None:
+            print(Game.pretty_print_bidding(next_state[0][-319:]))
+        else:
+            print("")
+        print("\n\n\n")
+
 
 
 
@@ -169,7 +184,15 @@ def optimize_model(
     non_final_next_states = T.cat([s for s in batch.next_state if s is not None])
     state_batch = T.cat(batch.state)
     action_batch = T.cat(batch.action)
-    reward_batch = T.cat(batch.reward)
+    reward_batch = T.cat(batch.reward).double()
+
+    # NOTE: RANDOM SHIT I'VE ADDED BECAUSE IT MIGHT SOLVE THE ISSUES
+
+
+
+
+    reward_batch = (reward_batch - reward_batch.mean()) / (reward_batch.std() + 1e-6)
+
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
@@ -211,13 +234,13 @@ def select_dummy_action(state: np.array) -> int:
         int -- Move to make.
     """
 
-    return 35
+    # return 35
 
     pot_bids = list(Game.legal_bids(state))
     extra_passes = [35 for x in range(len(pot_bids*4))]
     rand_pool = pot_bids + extra_passes
 
-    return numpy.random.choice(rand_pool)
+    return numpy.random.choice(pot_bids)
 
 
 def select_model_action(

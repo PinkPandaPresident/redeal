@@ -47,10 +47,23 @@ class Policy(nn.Module):
 
     def __init__(self, n_inputs=373, n_outputs=38):
         super(Policy, self).__init__()
+        # self.fc1 = nn.Linear(n_inputs, 512)
+        # self.fc2 = nn.Linear(512, 1024)
+        # self.fc3 = nn.Linear(1024, 2048)
+        # self.fc4 = nn.Linear(2048, 1024)
+        # self.fc5 = nn.Linear(1024, 512)
+        # self.fc6 = nn.Linear(512, n_outputs)
+
         self.fc1 = nn.Linear(n_inputs, 512)
         self.fc2 = nn.Linear(512, 1024)
-        self.fc3 = nn.Linear(1024, 512)
-        self.fc4 = nn.Linear(512, n_outputs)
+        self.fc3 = nn.Linear(1024, 2048)
+        self.fc4 = nn.Linear(2048, 2048)
+        self.fc5 = nn.Linear(2048, 2048)
+        self.fc6 = nn.Linear(2048, 2048)
+        self.fc7 = nn.Linear(2048, 2048)
+        self.fc8 = nn.Linear(2048, 1024)
+        self.fc9 = nn.Linear(1024, 512)
+        self.fc10 = nn.Linear(512, n_outputs)
 
         self.device = T.device("cuda" if T.cuda.is_available() else "cpu")
 
@@ -58,10 +71,23 @@ class Policy(nn.Module):
         """
         Forward pass for the model.
         """
+        # x = F.relu(self.fc1(x))
+        # x = F.relu(self.fc2(x))
+        # x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc4(x))
+        # x = F.relu(self.fc5(x))
+        # x = F.relu(self.fc6(x))
+
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
+        x = F.relu(self.fc5(x))
+        x = F.relu(self.fc6(x))
+        x = F.relu(self.fc7(x))
+        x = F.relu(self.fc8(x))
+        x = F.relu(self.fc9(x))
+        x = F.relu(self.fc10(x))
         return x
 
     def act(self, obf_observation, eps):
@@ -86,7 +112,9 @@ class Policy(nn.Module):
 
                 action = T.argmax(potential_actions).item()
             else:
-                action = np.random.choice(list(legal_actions)).item()
+                smarter_pool = list(legal_actions) + [35 for i in range(2*len(list(legal_actions)))]
+
+                action = np.random.choice(smarter_pool).item()
             return action
 
 
